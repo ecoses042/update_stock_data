@@ -5,8 +5,9 @@ import yfinance as yf
 import xlsxwriter as xlsx
 import openpyxl
 from datetime import date
-from init_data.get_start_date import get_start_date
-from init_data.init_stock_data import init_stock_data
+from modify_data.get_start_date import get_start_date
+from modify_data.init_stock_data import init_stock_data
+from modify_data.update_stock_data import update_stock_data
 
 
 def init_excel_file():
@@ -27,7 +28,7 @@ for stock_name in stock_names:
     if stock_name in workbook.sheetnames:
         print(f"'{stock_name}' 시트가 존재합니다.")
         start_date = get_start_date(stock_name)
-        init_stock_data(stock_name, start_date, end_date)
+        update_stock_data(file_path, stock_name, start_date, end_date)
     else:
         print(f"'{stock_name}' 시트가 존재하지 않습니다.")
-        init_stock_data(stock_name, '2020-01-01', '2021-01-01')
+        init_stock_data(stock_name, '2020-01-01', '2024-07-01')
