@@ -3,7 +3,7 @@ import numpy as np
 import yfinance as yf
 import xlsxwriter as xlsx
 from modify_data.get_info import trend
-from modify_data.get_info import get_rsi
+from modify_data.get_info import get_rsi, get_macd
 from modify_data.get_start_date import modify_date
 
 # init_stock_data(stock name, start date, end date)
@@ -17,14 +17,14 @@ def init_stock_data(stock_name, start_date, end_date):
 	# 이동 평균 계산
 	data['short_avg'] = data['Close'].rolling(window=20).mean()
 	data['med_avg'] = data['Close'].rolling(window=60).mean()
-	data['long_avg'] = data['Close'].rolling(window=200).mean()
+	data['long_avg'] = data['Close'].rolling(window=120).mean()
 
-	# 이동평균에 따른 추세 추가
-	data['trend'] = data.apply(trend, axis = 1)
 	# add RSI
 	data['rsi'] = get_rsi(data)
 	# add MACD
-	
+	data['macd'] = data.apply(get_macd, axis = 1)
+	data['signal'] = data['macd'].rolling(window=9).mean()
+	data['macd_oscillator'] = data['macd'] - data['signal']
 	# remomve duplicate data
 	data = data.dropna()
 	data = data.drop(columns = ['Open','Adj Close'])

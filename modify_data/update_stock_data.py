@@ -4,7 +4,7 @@ import yfinance as yf
 import xlsxwriter as xlsx
 import openpyxl
 from modify_data.get_info import trend
-from modify_data.get_info import get_rsi
+from modify_data.get_info import get_rsi, get_macd
 from modify_data.get_start_date import modify_date
 
 #if sheet exists call this function
@@ -26,8 +26,10 @@ def update_stock_data(filename, stock_name, start_date, end_date):
     new_data['short_avg'] = pd.NA
     new_data['med_avg'] = pd.NA
     new_data['long_avg'] = pd.NA
-    new_data['trend'] = pd.NA
     new_data['rsi'] = pd.NA
+    new_data['macd'] = pd.NA
+    new_data['signal'] = pd.NA
+    new_data['macd_oscillator'] = pd.NA
     # get old data to merge with new one
     try:
         old_data = pd.read_excel(filename, sheet_name=stock_name, index_col=0)
@@ -44,12 +46,16 @@ def update_stock_data(filename, stock_name, start_date, end_date):
     #modify cells with dummy data
     combined_data['short_avg'] = combined_data['short_avg'].fillna(combined_data['Close'].rolling(window=20).mean())
     combined_data['med_avg'] = combined_data['med_avg'].fillna(combined_data['Close'].rolling(window=60).mean())
-    combined_data['long_avg'] = combined_data['long_avg'].fillna(combined_data['Close'].rolling(window=200).mean())
-    combined_data['trend'] = combined_data.apply(
-        lambda row: trend(row) if pd.isna(row['trend']) else row['trend'], axis=1
-    )
+    combined_data['long_avg'] = combined_data['long_avg'].fillna(combined_data['Close'].rolling(window=120).mean())
+    # rsi
     combined_data['rsi'] = combined_data['rsi'].fillna(get_rsi(combined_data))
 
+    # macd
+    combined_data['macd'] = combined_data.apply(
+        lambda row: get_macd(row) if pd.isna(row['macd']) else row['macd'], axis=1
+    )
+    combined_data['signal'] = combined_data['signal'].fillna(combined_data['macd'].rolling(window=9).mean())
+    combined_data['macd_oscillator'] = combined_data['macd_oscillator'].fillna(combined_data['macd'] - combined_data['signal'])
     # write the change
     combined_data = combined_data[::-1]
     with pd.ExcelWriter(filename, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:

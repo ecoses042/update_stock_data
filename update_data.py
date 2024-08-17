@@ -31,4 +31,4 @@ for stock_name in stock_names:
         update_stock_data(file_path, stock_name, start_date, end_date)
     else:
         print(f"'{stock_name}' 시트가 존재하지 않습니다.")
-        init_stock_data(stock_name, '2020-01-01', '2024-07-01')
+        init_stock_data(stock_name, '2020-01-01', end_date)

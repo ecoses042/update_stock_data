@@ -24,4 +24,6 @@ def get_rsi(data, window=14):
 	# (average loss) sum of prev close price - close price
 #MACD
 def get_macd(data):
+	macd = data['short_avg'] - data['med_avg']
+	return macd
 	return 0
