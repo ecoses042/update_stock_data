@@ -1,42 +1,30 @@
-import pandas as pd
-import numpy as np
-import yfinance as yf
-import xlsxwriter as xlsx
-import openpyxl
-from modify_data.get_info import trend
-from modify_data.get_info import get_rsi, get_macd
-from modify_data.get_start_date import modify_date
 
+from constant import *
 #if sheet exists call this function
 #read from yfinance
 # overlay to the excel file
 # close and reopen excel file
 # modify the excel data
 
-def update_stock_data(filename, stock_name, start_date, end_date):
+def update_stock_data(stock_name, start_date, end_date):
     # 새로운 데이터 다운로드
-    print(start_date)
     new_data = yf.download(stock_name, start=start_date, end=end_date)
     new_data.index = pd.to_datetime(new_data.index).date
-
     new_data = new_data.drop(columns=['Open', 'Adj Close'])
     new_data = new_data.iloc[::-1]
 
     # fill dummy data
-    new_data['short_avg'] = pd.NA
-    new_data['med_avg'] = pd.NA
-    new_data['long_avg'] = pd.NA
-    new_data['rsi'] = pd.NA
-    new_data['macd'] = pd.NA
-    new_data['signal'] = pd.NA
-    new_data['macd_oscillator'] = pd.NA
+    new_data['short_avg'] = value_placeholder
+    new_data['med_avg'] = value_placeholder
+    new_data['long_avg'] = value_placeholder
+    new_data['rsi'] = value_placeholder
+    new_data['macd'] = value_placeholder
     # get old data to merge with new one
     try:
-        old_data = pd.read_excel(filename, sheet_name=stock_name, index_col=0)
+        old_data = pd.read_excel(file_path, sheet_name=stock_name, index_col=0)
         old_data.index = pd.to_datetime(old_data.index).date
     except FileNotFoundError:
         old_data = pd.DataFrame()
-    
     # merge and set index name
     combined_data = pd.concat([new_data, old_data])
     combined_data.index.name = 'date'
@@ -54,10 +42,9 @@ def update_stock_data(filename, stock_name, start_date, end_date):
     combined_data['macd'] = combined_data.apply(
         lambda row: get_macd(row) if pd.isna(row['macd']) else row['macd'], axis=1
     )
-    combined_data['signal'] = combined_data['signal'].fillna(combined_data['macd'].rolling(window=9).mean())
-    combined_data['macd_oscillator'] = combined_data['macd_oscillator'].fillna(combined_data['macd'] - combined_data['signal'])
     # write the change
     combined_data = combined_data[::-1]
-    with pd.ExcelWriter(filename, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+    with pd.ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
         combined_data.to_excel(writer, sheet_name=stock_name)
 
+    #while data_normalize section is none, call normalize_data with descending date order.

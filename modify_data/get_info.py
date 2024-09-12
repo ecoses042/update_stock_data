@@ -26,4 +26,3 @@ def get_rsi(data, window=14):
 def get_macd(data):
 	macd = data['short_avg'] - data['med_avg']
 	return macd
-	return 0
